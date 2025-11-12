@@ -1,5 +1,7 @@
 // Importation du package principal de Flutter pour les widgets Material Design.
 import 'package:dakarconnect/screens/home_screen.dart';
+import 'package:dakarconnect/screens/login_screen.dart';
+import 'package:dakarconnect/screens/report_screen.dart';
 import 'package:flutter/material.dart';
 
 // La fonction main() est le point d'entrée de toute application Dart/Flutter.
