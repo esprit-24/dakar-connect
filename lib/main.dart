@@ -1,32 +1,29 @@
-// Importation du package principal de Flutter pour les widgets Material Design.
-import 'package:dakarconnect/screens/home_screen.dart';
-import 'package:dakarconnect/screens/login_screen.dart';
-import 'package:dakarconnect/screens/report_screen.dart';
 import 'package:flutter/material.dart';
-
-// La fonction main() est le point d'entrée de toute application Dart/Flutter.
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+// 1. Importez votre nouvelle configuration de routeur.
+import 'config/router.dart';
 void main() {
-  // runApp() prend un widget et en fait la racine de l'arbre des widgets.
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
-// MyApp est le widget racine de notre application.
-class MyApp extends StatelessWidget {
-
+// 2. On transforme MyApp en ConsumerWidget pour qu'il puisse "lire" les providers.
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
-
-  // La méthode build() décrit comment afficher le widget.
   @override
-  Widget build(BuildContext context) {
-
-    // MaterialApp est un widget de base qui configure notre application
-    // avec les fonctionnalités de Material Design.
-    return MaterialApp(
+  // 'ref' est l'objet magique qui nous permet de communiquer avec nos providers.
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 3. On lit notre routerProvider pour obtenir l'instance de GoRouter.
+    final router = ref.watch(routerProvider);
+    // 4. On utilise MaterialApp.router au lieu de MaterialApp classique.
+    return MaterialApp.router(
+      // On lui passe notre configuration de routes.
+      routerConfig: router,
       debugShowCheckedModeBanner: false,
-      title: 'Dakar Connect',
-      // 'home' définit le premier écran qui sera affiché.
-      home: HomeScreen(),
+      theme: ThemeData(primarySwatch: Colors.indigo), // Un petit thème sympa
     );
-
   }
-
 }
+

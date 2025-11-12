@@ -1,76 +1,90 @@
+// Importation du package principal de Flutter pour les widgets Material.
 import 'package:flutter/material.dart';
-/// Un StatefulWidget pour l'écran de connexion.
-/// On pourrait le faire en StatelessWidget pour l'instant, mais un écran de connexion
-/// aura forcément besoin de gérer un état plus tard (chargement, erreurs...).
-class LoginScreen extends StatefulWidget {
+
+// Importation de GoRouter pour avoir accès aux fonctionnalités de navigation
+// comme context.go() si on voulait ajouter un lien vers une page d'inscription par exemple.
+import 'package:go_router/go_router.dart';
+
+// Importation de Riverpod pour pouvoir interagir avec nos providers.
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Importation du provider d'authentification que nous avons créé.
+// C'est lui qui contient l'état "connecté / déconnecté".
+import '../providers/auth_provider.dart';
+
+/// L'écran de connexion.
+/// On le transforme en `ConsumerWidget` au lieu de `StatelessWidget`.
+/// Cela nous donne accès à un paramètre spécial, `ref`, dans la méthode `build`.
+/// C'est notre "télécommande" pour interagir avec les providers.
+class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  @override
-  Widget build(BuildContext context) {
-    // Scaffold est la structure de base de notre page (comme une feuille blanche).
+  // La méthode build prend maintenant un deuxième paramètre : WidgetRef ref.
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Scaffold est la structure de base de notre page.
     return Scaffold(
-      // AppBar est la barre de titre en haut de l'écran.
       appBar: AppBar(
-        title: const Text("Connexion à DakarConnect"),
+        // On rend le titre un peu plus centré et stylé.
+        title: const Text("Bienvenue sur DakarConnect"),
+        centerTitle: true,
       ),
-      // Le corps de la page. On ajoute du Padding pour que les éléments
-      // ne soient pas collés aux bords de l'écran.
+      // Le corps de la page. On ajoute du Padding pour aérer les éléments.
       body: Padding(
-        padding: const EdgeInsets.all(20.0), // 20 pixels de marge sur tous les côtés.
-        // Column est une réglette verticale qui empile ses enfants les uns sur les autres.
-        child: Column(
-          // Aligne les enfants au centre verticalement.
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.all(24.0),
+        // On utilise un SingleChildScrollView pour éviter les erreurs de dépassement
+        // lorsque le clavier s'affiche sur des écrans plus petits.
+        child: SingleChildScrollView(
+          // Column nous permet d'empiler nos widgets verticalement.
+          child: Column(
+            // Aligne les enfants au centre de l'espace vertical.
+            mainAxisAlignment: MainAxisAlignment.center,
+            // Étire les enfants pour qu'ils prennent toute la largeur.
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Un petit espace en haut pour centrer visuellement le formulaire.
+              const SizedBox(height: 80),
 
-          children: [
-            // Le champ de saisie pour l'adresse e-mail.
-            TextField(
-              // keyboardType spécifie le type de clavier à afficher.
-              keyboardType: TextInputType.emailAddress,
-              // decoration permet de styliser le champ.
-              decoration: const InputDecoration(
-                labelText: 'Adresse e-mail',
-                border: OutlineInputBorder(), // Ajoute une bordure autour du champ.
-                prefixIcon: Icon(Icons.email), // Ajoute une icône à gauche.
+              // Champ de saisie pour l'adresse e-mail.
+              const TextField(
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Adresse e-mail',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email_outlined),
+                ),
               ),
-            ),
-            // SizedBox est une boîte invisible utilisée pour créer de l'espace.
-            const SizedBox(height: 20), // 20 pixels d'espace vertical.
-            // Le champ de saisie pour le mot de passe.
-            TextField(
-              // obscureText cache le texte saisi (pour les mots de passe).
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Mot de passe',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock), // Icône de cadenas.
+              const SizedBox(height: 20),
+              // Champ de saisie pour le mot de passe.
+              const TextField(
+                obscureText: true, // Cache le texte saisi.
+                decoration: InputDecoration(
+                  labelText: 'Mot de passe',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock_outline),
+                ),
               ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // Le bouton de connexion.
-            ElevatedButton(
-              // La fonction à exécuter lors du clic. Pour l'instant, elle est vide.
-              onPressed: () {
-                // La logique de connexion sera ajoutée ici dans les prochains modules.
-                print('Bouton de connexion cliqué !');
-              },
-              // style permet de personnaliser l'apparence du bouton.
-              style: ElevatedButton.styleFrom(
-                // Remplit le bouton sur toute la largeur disponible.
-                minimumSize: const Size.fromHeight(50),
-              ),
-              // Le texte affiché sur le bouton.
-              child: const Text('Se Connecter'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+              const SizedBox(height: 40),
+// Le bouton de connexion qui va simuler l'authentification.
+              ElevatedButton(
+                // La fonction qui s'exécute lors du clic.
+                onPressed: () {
+                  // C'EST LA LIGNE LA PLUS IMPORTANTE DE CE TEST :
+                  // 1. `ref.read(...)` : On demande à Riverpod de nous donner accès à un provider.
+                  //    On utilise `read` car on ne fait que changer la valeur une fois, on n'a pas
+                  //    besoin d'écouter les changements en continu ici.
+                  // 2. `authStateProvider.notifier` : On demande l'accès au "contrôleur" du provider,
+                  //    celui qui a le droit de modifier l'état.
+                  // 3. `.state = true` : On change la valeur de l'état de `false` à `true`.
+                  ref.read(authStateProvider.notifier).state = true;
+                  // Dès que cette ligne est exécutée, GoRouter, qui écoute ce provider,
+                  // va voir que l'état a changé. Il va ré-évaluer sa logique de redirection
+                  // et nous envoyer automatiquement vers la page d'accueil ('/home'). Magique !
+                },
+                // On personnalise un peu le style du bouton.
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                // Le texte affiché sur le bouton.
+                child: const Text('Se Connecter (Simulation)'),
+              ),        ],       ),       ),     ),  );   }  }
